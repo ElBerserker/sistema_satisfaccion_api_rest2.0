@@ -103,4 +103,4 @@ def eliminarUsuario(clv):
     return usuarioSchema.jsonify(eliminar_usuario)
 
 if __name__=="__main__":
-	app.run(debug=True)
+	app.run(debug=True, port="4000", host="192.168.1.66")
