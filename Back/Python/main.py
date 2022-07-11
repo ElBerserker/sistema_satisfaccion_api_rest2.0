@@ -6,13 +6,13 @@
 
 ############bibliotecas####################
 from flask import Flask, jsonify, request #
-from flask_sqlalchemy import SQLAlchemy   #
+from flask_sqlalchemy  import  SQLAlchemy #
 from flask_marshmallow import Marshmallow #
 ###########################################
 
 ##################################Creadenciales de la base de datos#########################################
 app = Flask(__name__)                                                                                      
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://Berserker_db:db_maria1.1@192.168.1.73:3306/Prueba'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://Berserker_db:db_maria1.1@localhost:3306/Prueba'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False                                                       
                                                                                                            
 db = SQLAlchemy(app)
@@ -103,4 +103,4 @@ def eliminarUsuario(clv):
     return usuarioSchema.jsonify(eliminar_usuario)
 
 if __name__=="__main__":
-	app.run(debug=True, port="4000", host="192.168.1.66")
+	app.run(debug=True, port="4000", host="192.168.1.65")
