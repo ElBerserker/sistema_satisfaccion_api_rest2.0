@@ -21,15 +21,27 @@ ma = Marshmallow(app)
 ########################### Creacion de la tabla usuario ###################################################
 class Usuario(db.Model):
 	clv_usuario = db.Column(db.String(5), primary_key = True)
-	nombre_usuario = db.Column(db.String(30), unique=True)
-	contrasenia_usuario = db.Column(db.String(30))
-	tipo_usuario = db.Column(db.String(15))
+	nombre_usuario = db.Column(db.String(30), unique=True, nullable = False)
+	contrasenia_usuario = db.Column(db.String(30), nullable = False)
+	tipo_usuario = db.Column(db.String(15), nullable = False)
 	
 	def __init__(self, clv_usuario, nombre_usuario, contrasenia_usuario, tipo_usuario):
 		self.clv_usuario = clv_usuario
 		self.nombre_usuario = nombre_usuario
 		self.contrasenia_usuario = contrasenia_usuario
 		self.tipo_usuario = tipo_usuario
+
+db.create_all()        
+#########################   Creacion de la tabla encuesta de satisfaccion ##################################
+class EncuestaSatisfaccion(db.Model):
+    clv_satisfaccion = db.Column(db.String(3), primary_key = True)
+    nivel_satisfaccion = db.Column(db.Integer, nullable = False)
+    comentario_satisfaccion = db.Column(db.Text)
+
+    def __init__(self, clv_satisfaccion, nivel_satisfaccion, comentario_satisfaccion):
+        self.clv_satisfaccion = clv_satisfaccion
+        self.nivel_satisfaccion = nivel_satisfaccion
+        self.comentario_satisfaccion = comentario_satisfaccion
 
 db.create_all()        
 ################################## Creacion de esquemas #####################################################
@@ -42,17 +54,39 @@ usuarioSchema = UsuarioSchema()
 #Devuelve todos lo registros de usuarios.
 usuarioSchemas = UsuarioSchema(many=True)
 
-#########################################  Metodos web #######################################################
+class EncuestaSchema(ma.Schema) :
+    class Meta:
+        fields = ('clv_satisfaccion' , 'nivel_satisfaccion', 'comentario_satisfaccion')
+#Devuelve los registros de una encuesta        
+encuestaSchema = EncuestaSchema()
+#Devuelve todos los resgistros de la encuesta
+encuestasSchemas = EncuestaSchema(many=True)
+
+#########################################  Metodos web #######################################################GET USUARIOS
 @app.route('/usuario', methods=['GET'])
 def obtenerUsuarios():
     todos_los_usuarios = Usuario.query.all()
     consulta_usuarios = usuarioSchemas.dump(todos_los_usuarios) 
     return jsonify(consulta_usuarios)
-#GET
+
+#GET USUARIO
 @app.route('/usuario/<clv>', methods=['GET'])
 def obtenerUsuario(clv):
     un_usuario = Usuario.query.get(clv)
     return usuarioSchema.jsonify(un_usuario)
+
+#GET ENCUESTAS
+@app.route('/encuesta', methods=['GET'])
+def obtenerEncuestas():
+    todas_las_encuestas = EncuestaSatisfaccion.query.all()
+    consulta_encuestas = encuestasSchema.dum(todas_las_encuestas)
+    return jsonify(consulta_encuestas)
+
+#GET ENCUESTA
+@app.route('/encuesta/<clv>', methods=['GET'])
+def obtenerEncuesta(clv):
+    una_encuesta = EncuestaSatisfaccion.query.get(clv)
+    return encuestaSchema.jsonify(una_encuesta)
 
 #POST
 @app.route('/usuario/nuevo_usuario', methods=['POST'])
@@ -69,6 +103,21 @@ def insertar_usuario():
     db.session.add(nuevo_usuario)
     db.session.commit()
     return usuarioSchema.jsonify(nuevo_usuario)
+
+#POST 
+@app.route('/nivel_satifaccion/nuevo_nivel_satifaccion', methods=['POST'])
+def insertar_nivel_satisfaccion():
+    datosJson = requets.get_json(force=True)
+
+    clv_satisfaccion = datosJson ['clv_satisfacion']
+    nivel_satisfaccion =  datosJson['nivel_satisfaccion']
+    comentario_satsifaccion = datosJson['comentario_satisfaccion']
+
+    nuevo_nivel_satisfaccion = EncuestaSarisfaccion(clv_satisfaccion, nivel_satisfaccion, comentario_satisfaccion)
+
+    db.session.add(nuevo_nivel_satisfaccion)
+    db.session.commit()
+    return encuestaSchema.jsonify(nuevo_nivel_satisfaccion)
 
 #PUT 
 @app.route('/usuario/actualizar_usuario/<clv>', methods=['PUT'])
@@ -103,4 +152,4 @@ def eliminarUsuario(clv):
     return usuarioSchema.jsonify(eliminar_usuario)
 
 if __name__=="__main__":
-	app.run(debug=True, port="4000", host="192.168.1.65")
+    app.run(debug=True, port="4000", host="192.168.1.80")
