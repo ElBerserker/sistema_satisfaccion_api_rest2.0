@@ -10,22 +10,24 @@
 cd ../Back/Python/
 
 
-if [ -d "environment" ]; then 
+if [ -d "environment" ]; then
     printf "\nThe environment already exists and is configured\n"
     source environment/bin/activate
-else	
-    """Creation and configuration of the python environment"""	
-    printf "\nConfiguring python environment...\n"		
+else
+    """Creation and configuration of the python environment"""
+    printf "\nConfiguring python environment...\n"
     python -m venv environment
 
     source environment/bin/activate
-   
+
     pip install Flask
     pip install flask_marshmallow
+    pip install Flask-Cors
     pip install Flask-SQLAlchemy
     pip install PyMySQL
     pip install marshmallow
     pip install marshmallow-sqlalchemy
 
     environment/bin/python -m pip install --upgrade pip
-fi    
+fi
+

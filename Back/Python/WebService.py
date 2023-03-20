@@ -8,30 +8,36 @@
 from flask import Flask, jsonify, request #
 from flask_sqlalchemy  import  SQLAlchemy #
 from flask_marshmallow import Marshmallow #
+from flask_cors import CORS, cross_origin #
 ###########################################
 
 ##################################Creadenciales de la base de datos#########################################
-app = Flask(__name__)                                                                                      
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://Berserker_db:db_maria1.1@localhost:3306/Prueba'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False                                                       
-                                                                                                           
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://Berserker_db:db_maria1.1@192.168.0.106:3306/sistema_satisfaccion'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+CORS (app)
+CORS (app, resources={
+    r"/*":{
+    "origins":"*"
+    }})
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
 ########################### Creacion de la tabla usuario ###################################################
 class Usuario(db.Model):
-	clv_usuario = db.Column(db.String(5), primary_key = True)
-	nombre_usuario = db.Column(db.String(30), unique=True, nullable = False)
-	contrasenia_usuario = db.Column(db.String(30), nullable = False)
-	tipo_usuario = db.Column(db.String(15), nullable = False)
-	
-	def __init__(self, clv_usuario, nombre_usuario, contrasenia_usuario, tipo_usuario):
-		self.clv_usuario = clv_usuario
-		self.nombre_usuario = nombre_usuario
-		self.contrasenia_usuario = contrasenia_usuario
-		self.tipo_usuario = tipo_usuario
+        clv_usuario = db.Column(db.String(5), primary_key = True)
+        nombre_usuario = db.Column(db.String(30), unique=True, nullable = False)
+        contrasenia_usuario = db.Column(db.String(30), nullable = False)
+        tipo_usuario = db.Column(db.String(15), nullable = False)
 
-db.create_all()        
+        def __init__(self, clv_usuario, nombre_usuario, contrasenia_usuario, tipo_usuario):
+                self.clv_usuario = clv_usuario
+                self.nombre_usuario = nombre_usuario
+                self.contrasenia_usuario = contrasenia_usuario
+                self.tipo_usuario = tipo_usuario
+
+with app.app_context():
+    db.create_all()
 #########################   Creacion de la tabla encuesta de satisfaccion ##################################
 class EncuestaSatisfaccion(db.Model):
     clv_satisfaccion = db.Column(db.String(3), primary_key = True)
@@ -43,7 +49,8 @@ class EncuestaSatisfaccion(db.Model):
         self.nivel_satisfaccion = nivel_satisfaccion
         self.comentario_satisfaccion = comentario_satisfaccion
 
-db.create_all()        
+with app.app_context():
+    db.create_all()
 ################################## Creacion de esquemas #####################################################
 class UsuarioSchema(ma.Schema):
     class Meta:
@@ -58,7 +65,7 @@ class EncuestaSchema(ma.Schema) :
     class Meta:
         fields = ('clv_satisfaccion' , 'nivel_satisfaccion', 'comentario_satisfaccion')
 
-#Devuelve los registros de una encuesta        
+#Devuelve los registros de una encuesta
 encuestaSchema = EncuestaSchema()
 #Devuelve todos los resgistros de la encuesta
 encuestasSchemas = EncuestaSchema(many=True)
@@ -67,13 +74,13 @@ encuestasSchemas = EncuestaSchema(many=True)
 @app.route('/usuario', methods=['GET'])
 def obtenerUsuarios():
     todos_los_usuarios = Usuario.query.all()
-    consulta_usuarios = usuarioSchemas.dump(todos_los_usuarios) 
+    consulta_usuarios = usuarioSchemas.dump(todos_los_usuarios)
     return jsonify(consulta_usuarios)
 
 #GET USUARIO
-@app.route('/usuario/<clv>', methods=['GET'])
-def obtenerUsuario(clv):
-    un_usuario = Usuario.query.get(clv)
+@app.route('/usuario/<name>', methods=['GET'])
+def obtenerUsuario(name):
+    un_usuario = Usuario.query.filter_by(nombre_usuario=name).first()
     return usuarioSchema.jsonify(un_usuario)
 
 #GET ENCUESTAS
@@ -105,12 +112,12 @@ def insertar_usuario():
     db.session.commit()
     return usuarioSchema.jsonify(nuevo_usuario)
 
-#POST 
+#POST
 @app.route('/nivel_satifaccion/nuevo_nivel_satifaccion', methods=['POST'])
 def insertar_nivel_satisfaccion():
     datosJSON = request.get_json(force=True)
 
-    clv_satisfaccion = datosJSON ['clv_satisfaccion']
+    clv_satisfaccion = datosJSON['clv_satisfaccion']
     nivel_satisfaccion =  datosJSON['nivel_satisfaccion']
     comentario_satisfaccion = datosJSON['comentario_satisfaccion']
 
@@ -120,7 +127,7 @@ def insertar_nivel_satisfaccion():
     db.session.commit()
     return encuestaSchema.jsonify(nuevo_nivel_satisfaccion)
 
-#PUT 
+#PUT
 @app.route('/usuario/actualizar_usuario/<clv>', methods=['PUT'])
 def actualizarUsuario(clv):
     actualizar_usuario = Usuario.query.get(clv)
@@ -153,4 +160,5 @@ def eliminarUsuario(clv):
     return usuarioSchema.jsonify(eliminar_usuario)
 
 if __name__=="__main__":
-    app.run(debug=True, port="4000", host="192.168.1.80")
+    app.run(debug=True, port="4040", host="192.168.0.101")
+
