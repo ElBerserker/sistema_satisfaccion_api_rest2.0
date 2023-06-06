@@ -9,17 +9,21 @@ from flask import Flask, jsonify, request #
 from flask_sqlalchemy  import  SQLAlchemy #
 from flask_marshmallow import Marshmallow #
 from flask_cors import CORS, cross_origin #
+from datetime import datetime             #
+from sqlalchemy.sql import func           #
 ###########################################
 
 ##################################Creadenciales de la base de datos#########################################
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://Berserker_db:db_maria1.1@192.168.0.106:3306/sistema_satisfaccion'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://Berserker_db:db_maria1.1@192.168.1.70:3306/sistema_satisfaccion'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+##################################Origenes cruzados#########################################################
 CORS (app)
 CORS (app, resources={
     r"/*":{
     "origins":"*"
     }})
+
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
@@ -40,14 +44,17 @@ with app.app_context():
     db.create_all()
 #########################   Creacion de la tabla encuesta de satisfaccion ##################################
 class EncuestaSatisfaccion(db.Model):
-    clv_satisfaccion = db.Column(db.String(3), primary_key = True)
+    id_encuesta = db.Column(db.Integer(), autoincrement=True, primary_key=True)
     nivel_satisfaccion = db.Column(db.Integer, nullable = False)
-    comentario_satisfaccion = db.Column(db.Text)
-
-    def __init__(self, clv_satisfaccion, nivel_satisfaccion, comentario_satisfaccion):
-        self.clv_satisfaccion = clv_satisfaccion
+    comentario = db.Column(db.Text)
+    folio = db.Column(db.String(18))
+    fecha = db.Column(db.DateTime, default=datetime.now)
+    # Tanto el id y el campo de fecha son automaticos por lo que no especifican en la funcion init
+    def __init__(self, nivel_satisfaccion, comentario, folio):
         self.nivel_satisfaccion = nivel_satisfaccion
-        self.comentario_satisfaccion = comentario_satisfaccion
+        self.comentario = comentario
+        self.folio = folio
+
 
 with app.app_context():
     db.create_all()
@@ -63,7 +70,7 @@ usuarioSchemas = UsuarioSchema(many=True)
 
 class EncuestaSchema(ma.Schema) :
     class Meta:
-        fields = ('clv_satisfaccion' , 'nivel_satisfaccion', 'comentario_satisfaccion')
+        fields = ('id_encuesta', 'nivel_satisfaccion', 'comentario', 'folio', 'fecha')
 
 #Devuelve los registros de una encuesta
 encuestaSchema = EncuestaSchema()
@@ -90,12 +97,6 @@ def obtenerEncuestas():
     consulta_encuestas = encuestasSchemas.dump(todas_las_encuestas)
     return jsonify(consulta_encuestas)
 
-#GET ENCUESTA
-@app.route('/encuesta/<clv>', methods=['GET'])
-def obtenerEncuesta(clv):
-    una_encuesta = EncuestaSatisfaccion.query.get(clv)
-    return encuestaSchema.jsonify(una_encuesta)
-
 #POST
 @app.route('/usuario/nuevo_usuario', methods=['POST'])
 def insertar_usuario():
@@ -117,11 +118,12 @@ def insertar_usuario():
 def insertar_nivel_satisfaccion():
     datosJSON = request.get_json(force=True)
 
-    clv_satisfaccion = datosJSON['clv_satisfaccion']
     nivel_satisfaccion =  datosJSON['nivel_satisfaccion']
-    comentario_satisfaccion = datosJSON['comentario_satisfaccion']
+    comentario = datosJSON['comentario']
+    folio = datosJSON['folio']
 
-    nuevo_nivel_satisfaccion = EncuestaSatisfaccion(clv_satisfaccion, nivel_satisfaccion, comentario_satisfaccion)
+
+    nuevo_nivel_satisfaccion = EncuestaSatisfaccion(nivel_satisfaccion, comentario, folio)
 
     db.session.add(nuevo_nivel_satisfaccion)
     db.session.commit()
@@ -144,11 +146,6 @@ def actualizarUsuario(clv):
     db.session.commit()
     return usuarioSchema.jsonify(actualizar_usuario)
 
-#GET
-@app.route('/', methods=['GET'])
-def index():
-    return jsonify({'Mensaje':'hola'})
-
 #DELETE
 @app.route('/usuario/eliminar_usuario/<clv>', methods=['DELETE'])
 def eliminarUsuario(clv):
@@ -160,5 +157,6 @@ def eliminarUsuario(clv):
     return usuarioSchema.jsonify(eliminar_usuario)
 
 if __name__=="__main__":
-    app.run(debug=True, port="4040", host="192.168.0.101")
+    #En este apartado se especifica la ruta del servidor
+    app.run(debug=True, port="4040", host="192.168.1.68")
 
