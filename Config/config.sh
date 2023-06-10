@@ -27,6 +27,7 @@ else
     pip install PyMySQL
     pip install marshmallow
     pip install marshmallow-sqlalchemy
+   
 
     environment/bin/python -m pip install --upgrade pip
 fi

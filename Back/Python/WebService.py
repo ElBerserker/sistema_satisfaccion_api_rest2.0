@@ -15,7 +15,7 @@ from sqlalchemy.sql import func           #
 
 ##################################Creadenciales de la base de datos#########################################
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://Berserker_db:db_maria1.1@192.168.1.70:3306/sistema_satisfaccion'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://Berserker_db:db_maria1.1@192.168.124.30:3306/sistema_satisfaccion'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 ##################################Origenes cruzados#########################################################
 CORS (app)
@@ -158,5 +158,5 @@ def eliminarUsuario(clv):
 
 if __name__=="__main__":
     #En este apartado se especifica la ruta del servidor
-    app.run(debug=True, port="4040", host="192.168.1.68")
+    app.run(debug=True, port="4040", host="192.168.124.90")
 
