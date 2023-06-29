@@ -142,7 +142,7 @@ def actualizarUsuario(clv):
     tipo_usuario = datosJSON['tipo_usuario']
 
     actualizar_usuario.nombre_usuario = nombre_usuario
-    actualizar_usuario.contrasenia_usuarui = contrasenia_usuario
+    actualizar_usuario.contrasenia_usuario = contrasenia_usuario
     actualizar_usuario.tipo_usuario = tipo_usuario
 
     db.session.commit()
@@ -160,4 +160,4 @@ def eliminarUsuario(clv):
 
 if __name__=="__main__":
     #En este apartado se especifica la ruta del servidor
-    app.run(debug=True, port="4040", host="www.lynx.server")
+    app.run(debug=True, port="4040", host="192.168.124.90")
